@@ -1,0 +1,10 @@
+- name: Install neovim
+  hosts: localhost
+  user: jared
+  become: yes
+
+  roles:
+    - neovim
+    - version_control
+    - terminal
+    - development

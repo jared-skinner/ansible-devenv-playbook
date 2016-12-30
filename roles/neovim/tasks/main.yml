@@ -1,0 +1,50 @@
+---
+# This playbook will install neovim
+
+- name: Add neovim repo
+  apt_repository: repo='ppa:neovim-ppa/unstable' state=present
+  register: nvimrepo
+
+- name: Install neovim
+  apt: pkg=neovim state=installed update_cache=true
+
+- name: Add config dir
+  file: path=/home/jared/.config/nvim state=directory
+
+- name: Add config file
+  copy: src=files/init.vim dest=/home/jared/.config/nvim/init.vim mode=0644
+
+- name: Add color scheme
+  copy: src=files/hm.vim dest=/usr/share/nvim/runtime/colors/hm.vim mode=0644
+
+- name: Install Plugin manager
+  shell: curl -fLo /home/jared/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+- name: Install YCMD dependencies
+  apt: pkg={{ item }}
+  with_items: 
+   - python-pip
+   - python-dev
+   - python3-pip
+   - python3-dev
+   - build-essential
+   - libssl-dev
+   - libffi-dev
+   - cmake
+
+- name: Install python nvim module
+  shell: pip install neovim
+
+#- name: Install plugins
+#  shell: nvim -E -s -c "source /home/jared/.config/nvim/init.vim" -c PlugInstall -c qa
+
+#- name: Compile YouCompleteMe
+#  shell: cd ~/.nvim/autoload/YouCompleteMe & ./install.py --all
+
+- name: install FZF
+  shell: git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf & /home/jared/.fzf/install
+
+- name: install RG
+  copy: src=files/rg dest=/bin/rg mode=0755
+
+# installing plugins and compiling ycmd need to be done manually

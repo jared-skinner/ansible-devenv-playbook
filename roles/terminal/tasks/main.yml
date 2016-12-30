@@ -1,0 +1,30 @@
+---
+
+- name: Install terminal tools
+  apt: pkg={{ item }}
+  with_items:
+   - zsh
+   - tmux
+   - htop
+   - sshfs
+   - markdown
+   - dos2unix
+   - ranger
+   - mysql-server
+
+- name: Cloning  oh-my-zsh
+  git:
+    repo=https://github.com/robbyrussell/oh-my-zsh
+    dest=/home/jared/.oh-my-zsh
+  register: cloning
+  sudo: no
+
+- name: Copy .zshrc
+  copy:
+    src=files/zshrc
+    dest=/home/jared/.zshrc
+  when: cloning|success
+  sudo: no
+
+- name: Set Zsh as default shell
+  shell: chsh -s "$(command -v zsh)" "${USER}"

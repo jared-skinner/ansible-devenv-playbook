@@ -1,0 +1,10 @@
+---
+
+- name: Install Version Control
+  apt: pkg={{ item }}
+  with_items:
+   - git
+   - subversion
+
+- name: Copy Git Config
+  copy: src=files/gitconfig dest=/home/jared/.gitconfig

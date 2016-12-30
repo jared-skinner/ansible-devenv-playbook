@@ -1,0 +1,57 @@
+# Path to your oh-my-zsh installation.
+export ZSH=~/.oh-my-zsh
+
+# An attractive theme
+ZSH_THEME="robbyrussell"
+
+# hyphen insensitive
+HYPHEN_INSENSITIVE="true"
+
+# disable marking untracked files under VCS as dirty. This makes repository status 
+# check for large repositories much, much faster.
+DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# list of plugins
+plugins=(git)
+
+# User configuration
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/lib"
+
+source $ZSH/oh-my-zsh.sh
+
+#set vim as the editor
+EDITOR=vim
+export EDITOR
+
+# Compilation flags
+export ARCHFLAGS="-arch x86_64"
+
+# Aliases
+alias cls="clear"
+alias extract="tar -xzvf"
+alias vi="nvim"
+alias vim="nvim"
+alias fzf="find * -type f | fzf"
+alias home="ssh jared@aquinasavila.com"
+alias task="clear && task"
+
+export TERM='xterm-256color'
+
+# this takes care of ssh and pgp management
+#eval $(keychain --quiet --agents gpg,ssh --eval id_rsa github_id_rsa FD0E9B93)
+
+source ~/.zsh_local
+
+#fuzzy completion
+# 0 -- vanilla completion (abc => abc)
+# 1 -- smart case completion (abc => Abc)
+# 2 -- word flex completion (abc => A-big-Car)
+# 3 -- full flex completion (abc => ABraCadabra)
+zstyle ':completion:*' matcher-list '' \
+  'm:{a-z\-}={A-Z\_}' \
+  'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
+  'r:[[:ascii:]]||[[:ascii:]]=** r:|=* m:{a-z\-}={A-Z\_}'
+
+LS_COLORS=$LS_COLORS:'di=0;94:ow=1;90;43' ; export LS_COLORS
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
