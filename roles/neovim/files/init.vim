@@ -52,6 +52,7 @@ set softtabstop=4				" number of spaces in tab when editing
 set shiftwidth=4				" this is for justification using > and <
 set grepprg=grep\ -nH\ $		" set grep for .tex reference completion
 set scrolloff=3
+"set cindent
 
 filetype plugin on				" needed for vim-latex
 filetype indent on				" load file type specific indent files
@@ -59,17 +60,24 @@ filetype off					" required
 
 au FocusLost * silent! wa		" save all windows on lose focus
 
+au SwapExists *.* let v:swapchoice = 'e'
+
+
 " enter insert mode any time focus is put on a terminal
 autocmd BufWinEnter,WinEnter term://* startinsert
 
 " exit normal mode when leaving a term
 autocmd BufLeave term://* stopinsert
+
+
+"let g:chromatica#libclang_path='/opt/clang/lib'
+
 " }}}
 " Folding {{{
-set foldenable			" enable folding
-set foldlevelstart=10	" start folding then we are 10 blocks deep
-set foldnestmax=10		" 10 nested fold max
-set foldmethod=indent	" fold based on indent level
+set nofoldenable			" disable folding
+"set foldlevelstart=10	" start folding then we are 10 blocks deep
+"set foldnestmax=1		" 10 nested fold max
+"set foldmethod=syntax	" fold based on indent level
 " }}}
 " Remaps {{{
 " navigate between buffers using tab and shift+tab
@@ -87,7 +95,7 @@ nnoremap gV `[v`]
 inoremap jk <esc>
 
 " return turns off search highlighting
-nnoremap <CR> :nohlsearch<CR>
+nnoremap <CR> :set hlsearch! hlsearch?<CR>
 
 " space open/closes folds
 nnoremap <space> za
@@ -107,6 +115,8 @@ tnoremap jk <C-\><C-n>
 tnoremap <C-w> <C-\><C-n><C-w>
 
 nmap <F8> :TagbarToggle<CR>
+
+"map <C-j> <Plug>(easymotion-bd-w)
 " }}}
 " Leader Shortcuts {{{
 " leader is comma
@@ -125,7 +135,7 @@ nnoremap <leader>ez :vsp ~/.zshrc<CR>
 nnoremap <leader>sv :source $MYVIMRC<CR>
 
 " open ag.vim **note, the space at the end is there for a reason!
-nnoremap <leader>a :Ag 
+nnoremap <leader>a :Find 
 
 " next tab
 nnoremap <leader><TAB> :tabnext<CR>
@@ -145,8 +155,12 @@ nnoremap <leader>w :set wrap! linebreak nolist <CR> :set list <CR> :set listchar
 " save/update session
 nnoremap <leader>m :call MakeSession()<CR>
 
-" fold everythin
+" fold everything
 nnoremap <leader>f :%foldc<CR>
+
+" search tags
+nnoremap <leader>t :Tags<CR>
+nnoremap <leader>b :BTags<CR>
 " }}}
 " Plugins {{{
 let path=$HOME.'/.nvim/autoload/'
@@ -154,38 +168,55 @@ let path=$HOME.'/.nvim/autoload/'
 call plug#begin(path)
 	Plug 'Valloric/YouCompleteMe'			" better tab completion
 	Plug 'bling/vim-airline'				" cool window decoration
+	Plug 'vim-airline/vim-airline-themes'
 	Plug 'tpope/vim-fugitive'				" git wrapper for vim
 	Plug 'mhinz/vim-signify'				" this can be used as a gutter for git, svn and cvs
 	Plug 'rking/ag.vim'						" better global search
 	Plug 'sjl/gundo.vim'					" tree undo history
 	Plug 'moll/vim-bbye'					" close buffers without messing with window layout
-	Plug 'scrooloose/syntastic'				" syntax checking magic, as neomake get better, i want to replace this with that
-	Plug 'tpope/vim-commentary'				" hot-keys for commenting stuff out
 	Plug 'justinmk/vim-syntax-extra'		" more syntax highlighting
 	Plug 'kshenoy/vim-signature'			" show marks
 	Plug 'hdima/python-syntax'				" better python syntax
-	Plug 'vim-scripts/autotags'				" autoupdate your ctags files
-	Plug 'critiqjo/lldb.nvim'				" debugging support
 	Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 	Plug 'junegunn/fzf.vim'					" fantastically fast fuzzy find
 	Plug 'scrooloose/nerdtree'				" browse files while vimming
-	Plug 'kchmck/vim-coffee-script'			" syntax highlighting for coffeescript
-	Plug 'tpope/vim-unimpaired'				" cool new mappings
-	Plug 'majutsushi/tagbar'				" tagbar
-	Plug 'easymotion/vim-easymotion'		" Easy motions
+	Plug 'ryanoasis/vim-devicons'
+	Plug 'neomake/neomake'					" async syntax checking
+	Plug 'rhysd/vim-crystal'				" crystal lang syntax highlighting
+	Plug 'critiqjo/lldb.nvim'				" debugging support
 call plug#end()
 " }}}
 " FZF Settings {{{
+" Similarly, we can apply it to fzf#vim#grep. To use ripgrep instead of ag:
+command! -bang -nargs=* Find
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always '.shellescape(<q-args>), 1,
+  \   <bang>0 ? fzf#vim#with_preview('up:60%')
+  \           : fzf#vim#with_preview('right:50%:hidden', '?'),
+  \   <bang>0)
+
 map <C-p> :Files .<CR>
 " }}}
-" Syntastic Settings {{{
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+" Neomake Settings {{{
 
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+let g:neomake_c_enabled_makers = ['gcc', 'clang']
+let g:neomake_cpp_enabled_makers = ['gcc']
+let g:neomake_c_clang_args = ['-std=c89', '-fsyntax-only', '-I/opt/osi/OpenNet_6.5.3.0/monarch/src/include', '-I/opt/osi/OpenNet_6.5.3.0/monarch/src/opennet/include/', '-DLINUX', '-DUNIX', '-D_REENTRANT', '-fPIC', '-DOSI64']
+let g:neomake_c_gcc_args = ['-std=c89', '-fsyntax-only', '-I/opt/osi/OpenNet_6.5.3.0/monarch/src/include', '-I/opt/osi/OpenNet_6.5.3.0/monarch/src/opennet/include/', '-DLINUX', '-DUNIX', '-D_REENTRANT', '-fPIC', '-DOSI64']
+
+autocmd! BufWritePost * call Make_and_copy()
+function! Make_and_copy()
+	NeomakeSh python /opt/scripts/filesync.py -f %:p
+	NeomakeSh python /opt/scripts/update_ctags.py %:p
+	Neomake
+endfunction
+
+" }}}
+" YouCompleteMe settings {{{
+	let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
+	let g:ycm_show_diagnostics_ui = 0
+	let g:ycm_register_as_syntastic_checker = 1
+	let g:ycm_disable_for_files_larger_than_kb = 180
 " }}}
 " Signify Settings {{{
     nmap <leader>gj <plug>(signify-next-hunk)
@@ -199,6 +230,7 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 set writebackup
 "}}}
 " Custom Functions {{{
+
 " Go away and Come back.  This script auto saves session info and loads it.
 
 " Get cwd string
@@ -458,6 +490,7 @@ let g:airline#extensions#tabline#fnamemod = ':t'
 let g:airline_right_sep=''
 let g:airline_left_sep=''
 let g:airline_theme='bubblegum'
+let g:airline_powerline_fonts = 1
 set laststatus=2 " for air line so the status bar at the bottom always displays
 " }}}
 " Vim LaTeX {{{

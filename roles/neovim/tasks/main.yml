@@ -1,24 +1,59 @@
 ---
 # This playbook will install neovim
 
+# centos install
+- name: Install Neovim Dependencies
+  yum: pkg={{ item }}
+  with_items:
+   - libtool 
+   - autoconf 
+   - automake
+   - cmake
+   - gcc
+   - gcc-c++
+   - make
+   - pkgconfig
+   - unzip
+   - xz #needed for YouCompleteMe compilation
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Clone Neovim Repo
+  git: repo=https://github.com/neovim/neovim dest=/home/jared/builds/neovim
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Compile and Install Neovim
+  shell: cd /home/jared/builds/neovim && make CMAKE_BUILD_TYPE=Release && make install
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+# ubuntu install
 - name: Add neovim repo
   apt_repository: repo='ppa:neovim-ppa/unstable' state=present
   register: nvimrepo
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install neovim
   apt: pkg=neovim state=installed update_cache=true
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Add config dir
-  file: path=/home/jared/.config/nvim state=directory
+  file: path=/home/jared/.config/nvim state=directory mode=0755
+  sudo: no
 
 - name: Add config file
   copy: src=files/init.vim dest=/home/jared/.config/nvim/init.vim mode=0644
+  sudo: no
 
 - name: Add color scheme
-  copy: src=files/hm.vim dest=/usr/share/nvim/runtime/colors/hm.vim mode=0644
+  #copy: src=files/hm.vim dest=/usr/share/nvim/runtime/colors/hm.vim mode=0644
+  copy: src=files/hm.vim dest=/usr/local/share/nvim/runtime/colors/hm.vim mode=0644
 
+- name: Create Plugin Directory
+  file: dest=/home/jared/.local/share/nvim/site/autoload mode=0755 state=directory
+  sudo: no
+ 
 - name: Install Plugin manager
-  shell: curl -fLo /home/jared/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  get_url: url=https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim dest=/home/jared/.local/share/nvim/site/autoload/plug.vim mode=0755
+  sudo: no
 
 - name: Install YCMD dependencies
   apt: pkg={{ item }}
@@ -31,18 +66,26 @@
    - libssl-dev
    - libffi-dev
    - cmake
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install python nvim module
   shell: pip install neovim
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-#- name: Install plugins
-#  shell: nvim -E -s -c "source /home/jared/.config/nvim/init.vim" -c PlugInstall -c qa
+- name: Install python nvim module
+  shell: pip3.5 install neovim
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-#- name: Compile YouCompleteMe
-#  shell: cd ~/.nvim/autoload/YouCompleteMe & ./install.py --all
+  #- name: Install plugins
+  #shell: free_form="nvim +PlugInstall +qall" executable=/bin/bash
+  #sudo: no
+
+  #- name: Compile YouCompleteMe
+  #shell: cd ~/.nvim/autoload/YouCompleteMe & ./install.py --all
 
 - name: install FZF
   shell: git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf & /home/jared/.fzf/install
+  sudo: no
 
 - name: install RG
   copy: src=files/rg dest=/bin/rg mode=0755

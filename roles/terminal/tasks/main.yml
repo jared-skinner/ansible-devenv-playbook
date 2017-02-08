@@ -1,30 +1,45 @@
 ---
 
 - name: Install terminal tools
+  yum: pkg={{ item }}
+  with_items:
+   - zsh
+   - tmux
+   - htop
+   - sshfs
+   - dos2unix
+   - mysql-server
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Install terminal tools
   apt: pkg={{ item }}
   with_items:
    - zsh
    - tmux
    - htop
    - sshfs
-   - markdown
    - dos2unix
-   - ranger
    - mysql-server
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Cloning  oh-my-zsh
   git:
-    repo=https://github.com/robbyrussell/oh-my-zsh
-    dest=/home/jared/.oh-my-zsh
+      repo=https://github.com/robbyrussell/oh-my-zsh
+      dest=/home/jared/.oh-my-zsh
+      mode=0644
   register: cloning
   sudo: no
 
 - name: Copy .zshrc
   copy:
-    src=files/zshrc
-    dest=/home/jared/.zshrc
+      src=files/zshrc
+      dest=/home/jared/.zshrc
+      mode=0644
   when: cloning|success
   sudo: no
 
-- name: Set Zsh as default shell
-  shell: chsh -s "$(command -v zsh)" "${USER}"
+- name: Copy .tmux.conf
+  copy:
+      src=files/tmux.conf
+      dest=/home/jared/.tmux.conf
+      mode=0644
