@@ -1,4 +1,4 @@
-- name: Install neovim
+- name: Install dev_env
   hosts: localhost
   user: jared
   become: yes
@@ -8,3 +8,4 @@
     - version_control
     - terminal
     - development
+    - release_puller

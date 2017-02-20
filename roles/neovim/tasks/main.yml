@@ -44,8 +44,12 @@
   sudo: no
 
 - name: Add color scheme
-  #copy: src=files/hm.vim dest=/usr/share/nvim/runtime/colors/hm.vim mode=0644
   copy: src=files/hm.vim dest=/usr/local/share/nvim/runtime/colors/hm.vim mode=0644
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Add color scheme Ubuntu
+  copy: src=files/hm.vim dest=/usr/share/nvim/runtime/colors/hm.vim mode=0644
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Create Plugin Directory
   file: dest=/home/jared/.local/share/nvim/site/autoload mode=0755 state=directory
@@ -83,9 +87,9 @@
   #- name: Compile YouCompleteMe
   #shell: cd ~/.nvim/autoload/YouCompleteMe & ./install.py --all
 
-- name: install FZF
-  shell: git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf & /home/jared/.fzf/install
-  sudo: no
+#- name: install FZF
+#  shell: git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf & /home/jared/.fzf/install
+#  sudo: no
 
 - name: install RG
   copy: src=files/rg dest=/bin/rg mode=0755

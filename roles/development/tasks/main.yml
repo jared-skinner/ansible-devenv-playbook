@@ -1,4 +1,2 @@
-# - name: Install Lemonade
-   shell: curl https://github.com/pocke/lemonade/releases/download/v1.1.1/lemonade_linux_amd64.tar.gz
-   shell: tar -xzvf ~/Downloads/lemonade_linux_amd64.tar.gz
-   shell: mv ~/Downloads/lemonade /bin
+- name: Install Lemonade
+  copy: src=files/lemonade dest=/bin/lemonade mode=0755

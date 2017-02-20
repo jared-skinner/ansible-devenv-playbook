@@ -26,7 +26,6 @@
   git:
       repo=https://github.com/robbyrussell/oh-my-zsh
       dest=/home/jared/.oh-my-zsh
-      mode=0644
   register: cloning
   sudo: no
 
